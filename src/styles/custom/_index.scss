@@ -1,0 +1,82 @@
+//
+// Custom
+//
+
+@use 'sass:map';
+
+ul {
+	list-style: none !important;
+	padding: 0;
+	margin: 0;
+}
+
+.scroll-margin {
+	scroll-margin-top: map.get($header, height) + map.get($subheader, height) + map.get($page, padding-y);
+}
+
+.sticky-top-size {
+	top: map.get($header, height) + map.get($subheader, height) + map.get($page, padding-y);
+}
+
+.border-transparent {
+	--#{$prefix}border-opacity: 0;
+}
+
+
+
+.list-data {}
+
+.list-data .list-data-header {}
+
+.list-data .list-data-header .header-item {
+	display: flex;
+}
+
+.list-data .list-data-header .header-item>div {
+	display: flex;
+	padding: 10px;
+	font-weight: bold;
+	border-bottom: .5px solid #dedede;
+	border-top: .5px solid #dedede;
+}
+
+.list-data .list-data-body {
+	padding: 15px 0;
+}
+
+.list-data .list-data-body>li:nth-child(odd) {
+	background-color: #f4f4f4;
+}
+
+.list-data .list-data-body>li>div {
+	display: flex;
+}
+
+.list-data .list-data-body>li>div>div {
+	padding: 10px;
+	display: flex;
+}
+
+.list-data .list-data-body>li>div>.no {
+	width: 80px;
+	justify-content: flex-end;
+	align-items: center;
+}
+
+.list-data .list-data-body>li>div>.action {
+	width: 80px;
+}
+
+.list-data .list-data-pagination {
+	border-top: .5px solid #dedede;
+	padding-top: 15px;
+}
+.faqs-update-form{
+display: flex;
+flex-direction: column;
+gap: 20px;
+}
+.faqs-update-form > div{
+	display: flex;
+	flex-direction: column;
+}
