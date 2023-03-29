@@ -10,109 +10,251 @@ import Modal, { ModalHeader, ModalTitle, ModalBody, ModalFooter } from '../../..
 import showNotification from '../../../components/extras/showNotification';
 import Icon from '../../../components/icon/Icon';
 import Checks from '../../../components/bootstrap/forms/Checks';
-
+import $ from 'jquery';
+import Card, { CardActions, CardBody, CardFooter, CardHeader, CardLabel } from '../../../components/bootstrap/Card';
+import Popovers from '../../../components/bootstrap/Popovers';
+import { CheckErrorResponse, CONSTANT, GetObjectProperty, SendGetRequest, SendPostRequest } from '../../../helpers/helpers';
 const OnlyContent = () => {
-	const fileChoose = useRef<any>();
 	const [isAddNewProfileModalOpen, setIsAddNewProfileModalOpen] = useState(false);
-	const [isUpdateProfileModalOpen, setIsUpdateProfileModalOpen] = useState(false);
-
-	const [listData, setListData] = useState<any[]>([{ CompanyName: 'hiSOFT Solution LLC', Address: '160 Robinson Road, #14-40 Singapore Business Federation Center' }]);
+	const [isConfirmDeleteModalOpen, setIsConfirmDeleteModalOpen] = useState(false);
+	const [isPopupAddNewFileConfirmOpen, setIsPopupAddNewFileConfirmOpen] = useState(false);
+	const [isAddNewFileModalOpen, setIsAddNewFileModalOpen] = useState(false);
+	const [fileName, setFileName] = useState('');
+	const [fileData, setFileData] = useState('');
+	const [fileDataExt, setFileDataExt] = useState('');
+	const [dataRoomId, setDataRoomId] = useState('');
+	const [dataRoomCompanyName, setDataRoomCompanyName] = useState('');
+	const [dataRoomCompanyRootFolder, setDataRoomCompanyRootFolder] = useState('');
+	const [isLoading, setIsLoading] = useState(false);
+	const [listCompany, setListCompany] = useState<any[]>([]);
+	const [listData, setListData] = useState<any[]>([]);
 	const [totalPage, setTotalPage] = useState([1]);
 	const [currentPage, setCurrentPage] = useState(1);
 
-	const [listFileAndFolder, setListFileAndFolder] = useState<any[]>([
-		{
-			name: 'Registers',
-			type: 'folder',
-			subfolder: [
-				{
-					name: 'Registers of Tranfers',
-					type: 'folder',
-				},
-				{
-					name: 'Registers of Directors',
-					type: 'folder',
-				},
-				{
-					name: 'Word',
-					type: 'file',
-				},
-				{
-					name: 'Excel',
-					type: 'file',
-				},
-			],
-		},
-		{
-			name: 'Miscellaneous',
-			type: 'folder',
-		},
-	]);
-
+	const [id, setId] = useState('');
+	const [companyId, setCompanyId] = useState('');
 	const [folderName, setFolderName] = useState('');
-	const [fileName, setFileName] = useState('');
-	const [fileDataBase64, setFileDataBase64] = useState('');
-	const FileNameOnChange = (obj: any) => { setFileName(obj.target.value); }
-	const FolderNameOnChange = (obj: any) => { setFolderName(obj.target.value); }
-	const BrowseFileOnChange = (event: any) => {
-
+	const FolderNameOnChange = (obj: any) => { if (/[^a-zA-Z0-9\b.!$%^&*()\-_,]/.test(obj.target.value)) return; if (obj.target.value.length > 255) return; setFolderName(obj.target.value); }
+	const FileNameOnChange = (obj: any) => { if (/[^a-zA-Z0-9\b.!$%^&*()\-_,]/.test(obj.target.value)) return; if (obj.target.value.length > 255) return; setFileName(obj.target.value); }
+	const BrowseFileOnChange = async (event: any) => {
 		const reader = new FileReader();
 		reader.onloadend = function (rs: any) {
-			const basr64Data = rs?.currentTarget?.result.split('base64,');
-			setFileDataBase64(basr64Data);
+			if (rs.total > 5242880) {
+				showNotification('Warning', 'File size must be less than 5MB', 'danger');
+				$(event.target).val('');
+				return;
+			}
+			const base64Data = rs?.currentTarget?.result.split('base64,');
+
+			let extData = base64Data[0].replace(';', '').replace('data:', '');
+			let extPart = extData.split('/');
+			let ext = '';
+			switch (extPart[1]) {
+				case 'vnd.openxmlformats-officedocument.wordprocessingml.document': ext = 'docx'; break;
+				case 'vnd.openxmlformats-officedocument.spreadsheetml.sheet': ext = 'xlsx'; break;
+				case 'vnd.openxmlformats-officedocument.presentationml.presentation': ext = 'pptx'; break;
+				case 'msword': ext = 'doc'; break;
+				case 'pdf': ext = 'pdf'; break;
+				case 'vnd.ms-powerpoint': ext = 'ppt'; break;
+				case 'vnd.ms-excel': ext = 'xls'; break;
+				default: ext = 'png';
+			}
+			setFileDataExt(ext);
+			setFileData(base64Data[1]);
 		}
 		reader.readAsDataURL(event.target.files[0]);
 
 	}
-	const [profileType, setProfileType] = useState('file');
 
-	const ProfileTypeOnChange = (obj: any) => { setProfileType(obj.target.value); }
-	const CompanyOnChange = (obj: any) => { }
+	const UpdaloadFile = async () => {
+
+		try {
+			setIsLoading(true);
+
+			let model = {
+				FolderID: dataRoomId,
+				FileName: fileName,
+				FileData: fileData,
+				FileType: 5,
+				FileExt: fileDataExt
+			};
+
+
+			let errorCount = 0;
+			if (model.FileName === '') {
+				errorCount++;
+				showNotification('Warning', 'File name cannot be left blank', 'danger');
+			}
+			if (model.FileData === '') {
+				errorCount++;
+				showNotification('Warning', 'Please choose file to upload', 'danger');
+			}
+
+			if (model.FileExt === 'docx' || model.FileExt === 'doc') model.FileType = 1;
+			else if (model.FileExt === 'xlsx' || model.FileExt === 'xls') model.FileType = 2;
+			else if (model.FileExt === 'pptx' || model.FileExt === 'ppt') model.FileType = 3;
+			else if (model.FileExt === 'pdf') model.FileType = 4;
+
+			if (errorCount > 0) throw new Error();
+			let rs = await SendPostRequest('/dataroom/UploadFile', model);
+
+			if (CheckErrorResponse(rs) === false) throw new Error();
+			showNotification('Congratulation', 'Updated successfully', 'success');
+			CloseAddNewFileModal();
+		}
+		catch (ex) {
+
+		}
+		setIsLoading(false);
+
+	}
+
+	const CompanyOnChange = (obj: any) => { setCompanyId(obj.target.value); }
+	const OpenAddNewFileModal = () => { setIsPopupAddNewFileConfirmOpen(false); setIsAddNewFileModalOpen(true); }
+	const CloseAddNewFileModal = () => {
+		setDataRoomId('');
+		setDataRoomCompanyName('');
+		setDataRoomCompanyRootFolder(''); setIsAddNewFileModalOpen(false);
+	}
 
 	const OpenAddNewProfileModal = () => { setIsAddNewProfileModalOpen(true); }
-	const CloseAddNewProfileModal = () => { setIsAddNewProfileModalOpen(false); }
-	const OpenUpdateProfileModal = () => { setIsUpdateProfileModalOpen(true); }
-	const CloseUpdateProfileModal = () => { setIsUpdateProfileModalOpen(false); }
-	const SaveNewProfile = () => { }
+	const CloseAddNewProfileModal = () => { setFolderName(''); setCompanyId(''); setIsAddNewProfileModalOpen(false); }
+	const OpenUpdateProfileModal = (e: any) => {
+		const folderId = $(e.target).closest('.popover').data('id');
+		window.location.href = '/data-room/update?id=' + folderId;
+	}
+	const AcceptDelete = async (e: any) => {
+		let rs = await SendGetRequest('/dataroom/DeleteCompanyDataRoom?id=' + id);
+		if (CheckErrorResponse(rs) === false) return;
+		showNotification('Congratulation', 'Deleted successfully', 'success');
+		CloseConfirmDelete()
+		LoadData();
+	}
+	const ConfirmDelete = (e: any) => {
+		const deleteId = $(e.target).closest('.popover').data('id');
+		setId(deleteId);
+		setIsConfirmDeleteModalOpen(true);
+	}
+	const CloseConfirmDelete = () => {
+		setId('');
+		setIsConfirmDeleteModalOpen(false);
+	}
+	const SaveNewProfile = async () => {
+		try {
+			let model = {
+				ID: id,
+				CompanyID: companyId,
+				FolderName: folderName
+			};
+
+			let errorCount = 0;
+			if (model.CompanyID === '') {
+				errorCount++;
+				showNotification('Warning', 'Please choose company', 'danger');
+			}
+			if (model.FolderName === '') {
+				errorCount++;
+				showNotification('Warning', 'Folder name cannot be left blank', 'danger');
+			}
+			if (errorCount > 0) throw new Error();
+			setIsLoading(true);
+			let rs = await SendPostRequest('/dataroom/CreateCompanyFolder', model);
+			setIsLoading(false);
+			if (CheckErrorResponse(rs) === false) throw new Error();
+			showNotification('Congratulation', 'Updated successfully', 'success');
+			LoadData();
+			CloseAddNewProfileModal();
+			setDataRoomId(rs.data.DataRoomId);
+			setDataRoomCompanyName(rs.data.CompanyName);
+			setDataRoomCompanyRootFolder(rs.data.RootFolder);
+			setIsPopupAddNewFileConfirmOpen(true);
+		}
+		catch (ex) {
+
+		}
+		setIsLoading(false);
+
+	}
+	const LoadData = async () => {
+		let rs = await SendGetRequest('/DataRoom/GetListCompanyDataRoom?page=' + currentPage);
+		if (CheckErrorResponse(rs) === false) return;
+		const totalPageData = Math.ceil(GetObjectProperty(rs.data, 'totalRow', 0) / CONSTANT.NUMBER.ROW_PER_PAGE);
+		let totalPageList = [];
+		for (let index = 1; index <= totalPageData; index++) {
+			totalPageList.push(index);
+		}
+		setTotalPage(totalPageList);
+		setListData(rs.data.listData);
+		rs = await SendGetRequest('/DataRoom/GetListCompany');
+		if (CheckErrorResponse(rs) === false) return;
+		setListCompany([{ value: '', text: 'Please choose company' }, ...rs.data]);
+	}
+	useEffect(() => {
+		LoadData();
+
+	}, [])
+
 	return (
 		<PageWrapper title={customerManagementsMenu.customerManagements.subMenu.dataRoom.text}>
 			<Page>
-				<div className='user-account'>
-					<div>
-						<Button title='Add new' icon='Add' isOutline color='success' onClick={OpenAddNewProfileModal}>Add new</Button>
-					</div>
-					<div className='list-data' style={{ paddingTop: 15 }}>
-						<ul className='list-data-header'>
-							<li>
-								<div className='header-item'>
-									<div style={{ width: 80 }}>No</div>
-									<div style={{ width: 80 }}></div>
-									<div style={{ flex: 1 }}>Company name</div>
-								</div>
-							</li>
-						</ul>
-						<ul className='list-data-body'>
-							{
-								listData.length <= 0 ?
-									<li><div style={{ padding: 10 }}>No data</div></li>
-									:
-									listData.map((item, index) => {
-
-										return (<li key={index}>
-											<div >
-												<div className='no'>{index + 1}</div>
-												<div className='action'>
-													<button className='btn' style={{ border: 'none' }} onClick={OpenUpdateProfileModal}><Icon icon='Menu' color='info' size={'lg'} /></button>
-												</div>
-												<div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-													<div style={{ fontWeight: 'bold' }}>{item.CompanyName}</div>
-													<div style={{ fontStyle: 'italic' }}>{item.Address}</div>
-												</div>
-											</div>
-										</li>)
-									})
-							}
-						</ul>
+				<Card stretch={'full'}>
+					<CardHeader>
+						<CardLabel>{ }</CardLabel>
+						<CardActions>
+							<Button title='Add new' icon='Add' isLight isOutline color='success' onClick={OpenAddNewProfileModal}>Add new</Button>
+						</CardActions>
+					</CardHeader>
+					<CardBody isScrollable className='table-responsive'>
+						<table className='table table-modern table-hover'>
+							<thead>
+								<tr>
+									<th style={{ width: 60 }}>No</th>
+									<th style={{ width: 60 }}></th>
+									<th>Company name</th>
+								</tr>
+							</thead>
+							<tbody>
+								{
+									listData.length <= 0 ? <tr><td colSpan={3}>No data</td></tr> :
+										listData.map((item, index) => {
+											let addressCompany = item.Address;
+											if (GetObjectProperty(item, 'ProvinceName') !== '') {
+												if (addressCompany === '') addressCompany += GetObjectProperty(item, 'ProvinceName');
+												else addressCompany += ', ' + GetObjectProperty(item, 'ProvinceName');
+											}
+											if (GetObjectProperty(item, 'DistrictName') !== '') {
+												if (addressCompany === '') addressCompany += GetObjectProperty(item, 'DistrictName');
+												else addressCompany += ', ' + GetObjectProperty(item, 'DistrictName');
+											}
+											if (GetObjectProperty(item, 'WardName') !== '') {
+												if (addressCompany === '') addressCompany += GetObjectProperty(item, 'WardName');
+												else addressCompany += ', ' + GetObjectProperty(item, 'WardName');
+											}
+											return (
+												<tr key={index}>
+													<td>{((currentPage - 1) * CONSTANT.NUMBER.ROW_PER_PAGE + index + 1)}</td>
+													<td>
+														<Popovers data-id={item.ID} trigger={'hover'} delay={600}
+															desc={<div style={{ display: 'flex', flexDirection: 'column' }}>
+																<Button onClick={OpenUpdateProfileModal}>Edit</Button><Button onClick={ConfirmDelete}>Delete</Button></div>}
+														>
+															<Button><i className="fa-solid fa-bars"></i></Button>
+														</Popovers>
+													</td>
+													<td>
+														<div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+															<div style={{ fontWeight: 'bold' }}>{item.CompanyName}</div>
+															<div style={{ fontStyle: 'italic' }}>{addressCompany}</div>
+														</div>
+													</td>
+												</tr>
+											);
+										})
+								}
+							</tbody>
+						</table>
+					</CardBody>
+					<CardFooter>
 
 						<ul className='list-data-pagination'>
 							{
@@ -124,11 +266,9 @@ const OnlyContent = () => {
 									)
 								})
 							}
-
 						</ul>
-					</div>
-
-				</div>
+					</CardFooter>
+				</Card>
 			</Page>
 			<Modal
 				isOpen={isAddNewProfileModalOpen} // Example: state
@@ -142,129 +282,174 @@ const OnlyContent = () => {
 				<ModalHeader
 					setIsOpen={setIsAddNewProfileModalOpen} // Example: setState
 				>
-					<ModalTitle id={'AddNewProfileModalTitle'}>Add New Profile</ModalTitle>
+					<ModalTitle id={'AddNewProfileModalTitle'}>Add New Folder</ModalTitle>
 				</ModalHeader>
 				<ModalBody >
 					<div>
 						<div style={innerStyle.FormItem}>
 							<Label style={innerStyle.FormItemLabel} htmlFor={'send-to'}>Company name</Label>
 							<Select ariaLabel=''
-							style={innerStyle.FormItemInput}
-								list={[{ value: '1', text: 'Company A' }, { value: '2', text: 'Company B' }, { value: '3', text: 'Company C' },]}
+								style={innerStyle.FormItemInput}
+								list={listCompany}
 								onChange={CompanyOnChange}
 							/>
 						</div>
-
-						<div style={innerStyle.FormItem}>
-							<Label style={innerStyle.FormItemLabel} htmlFor={''}></Label>
-							<Checks
-								checked={profileType}
-								label={'File'}
-								name={'profile-type'}
-								type="radio"
-								value={'file'}
-								onChange={ProfileTypeOnChange}
-							/>
-							<Checks
-								checked={profileType}
-								label={'Folder'}
-								name={'profile-type'}
-								type="radio"
-								value={'folder'}
-								onChange={ProfileTypeOnChange}
-							/>
-						</div>
-
 						{
-							profileType === 'file' ?
-								<>
 
-									<div style={innerStyle.FormItem}>
-										<Label style={innerStyle.FormItemLabel} htmlFor={'file-name'}>File name</Label>
-										<Input style={innerStyle.FormItemInput} value={fileName} onChange={FileNameOnChange} autoComplete={'false'} id='file-name' />
-									</div>
-									<div style={innerStyle.FormItem}>
-										<Label style={innerStyle.FormItemLabel} htmlFor={'file'}>Browse</Label>
-										<input type={'hidden'} id={'file-base-64'} value={fileDataBase64} />
-										<input type={'file'} ref={fileChoose} id={'file'} style={{}} onChange={BrowseFileOnChange} />
-
-									</div>
-								</>
-								:
-								<div style={innerStyle.FormItem}>
-									<Label style={innerStyle.FormItemLabel} htmlFor={'title'}>Folder name</Label>
-									<Input style={innerStyle.FormItemInput} value={folderName} onChange={FolderNameOnChange} autoComplete={'false'} id='title' />
-								</div>
-
+							/*
+							<div style={innerStyle.FormItem}>
+													<Label style={innerStyle.FormItemLabel} htmlFor={''}></Label>
+													<Checks
+														checked={profileType}
+														label={'File'}
+														name={'profile-type'}
+														type="radio"
+														value={'file'}
+														onChange={ProfileTypeOnChange}
+													/>
+													<Checks
+														checked={profileType}
+														label={'Folder'}
+														name={'profile-type'}
+														type="radio"
+														value={'folder'}
+														onChange={ProfileTypeOnChange}
+													/>
+												</div>
+						
+													<>
+						
+															<div style={innerStyle.FormItem}>
+																<Label style={innerStyle.FormItemLabel} htmlFor={'file-name'}>File name</Label>
+																<Input style={innerStyle.FormItemInput} value={fileName} onChange={FileNameOnChange} autoComplete={'false'} id='file-name' />
+															</div>
+															<div style={innerStyle.FormItem}>
+																<Label style={innerStyle.FormItemLabel} htmlFor={'file'}>Browse</Label>
+																<input type={'hidden'} id={'file-base-64'} value={fileDataBase64} />
+																<input type={'file'} ref={fileChoose} id={'file'} style={{}} onChange={BrowseFileOnChange} />
+						
+															</div>
+														</>
+							*/
 						}
 
+
+
+
+						<div style={innerStyle.FormItem}>
+							<Label style={innerStyle.FormItemLabel} htmlFor={'title'}>Folder name</Label>
+							<Input style={innerStyle.FormItemInput} value={folderName} onChange={FolderNameOnChange} autoComplete={'false'} id='title' />
+						</div>
 					</div>
-
-
 				</ModalBody>
 				<ModalFooter  >
-					<Button isOutline color='success' onClick={SaveNewProfile}>Send</Button>
+					<Button isOutline color='success' isDisable={isLoading} onClick={SaveNewProfile}>Send</Button>
 					<Button isOutline color='link' onClick={CloseAddNewProfileModal}>Close</Button>
 				</ModalFooter>
 			</Modal>
 
 			<Modal
-				isOpen={isUpdateProfileModalOpen} // Example: state
-				setIsOpen={setIsUpdateProfileModalOpen} // Example: setState
+				isOpen={isAddNewFileModalOpen} // Example: state
 				isStaticBackdrop={true}
 				isScrollable={true}
 				isCentered={true}
 				size={'lg'} // 'sm' || 'lg' || 'xl' 
 				fullScreen={'md'} // true || 'sm' || 'md' || 'lg' || 'xl' || 'xxl' 
-				isAnimation={true}>
-				<ModalHeader
-					setIsOpen={setIsUpdateProfileModalOpen} // Example: setState
-				>
-					<ModalTitle id={'UpdateProfileModalTitle'}>{'hiSOFT Solution LLC'}</ModalTitle>
+				isAnimation={true}
+				setIsOpen={setIsAddNewFileModalOpen}>
+				<ModalHeader>
+					<ModalTitle id={'ModalTitle'}>Add new file</ModalTitle>
 				</ModalHeader>
 				<ModalBody >
 					<div>
-						<div>
-							<Button isOutline color='success' onClick={() => { }}>Add folder</Button>
-							<Button isOutline color='link' onClick={() => { }}>Add file</Button>
+						<div style={innerStyle.FormItem}>
+							<Label style={innerStyle.FormItemLabel} htmlFor={'send-to'}>Company name</Label>
+							<Input style={innerStyle.FormItemInput} value={dataRoomCompanyName} disabled />
 						</div>
-						<ul>
-							<li></li>
-							<li>Name</li>
-						</ul>
-						<ul>
-							<li></li>
-						</ul>
-						<table className='table'>
-							<thead>
-								<tr>
-									<th></th>
-									<th>Name</th>
-								</tr>
-							</thead>
-							<tbody>
-								{
-									listFileAndFolder.map((item, index) => {
-										return (
-											<tr key={index}>
-												<td>{index + 1}</td>
-												<td>
-													<button className='btn' style={{ border: 'none' }}><Icon icon='Close' color='danger' size={'lg'} /></button>
-												</td>
-												<td>{item.FileName}</td>
-											</tr>
-										);
-									})
-								}
-							</tbody>
-						</table>
+						<div style={innerStyle.FormItem}>
+							<Label style={innerStyle.FormItemLabel} htmlFor={'send-to'}>Folder name</Label>
+							<Input style={innerStyle.FormItemInput} value={dataRoomCompanyRootFolder} disabled />
+						</div>
 
+						<div style={innerStyle.FormItem}>
+							<Label style={innerStyle.FormItemLabel} htmlFor={'send-to'}>File name</Label>
+							<Input style={innerStyle.FormItemInput} value={fileName} onChange={FileNameOnChange} />
+						</div>
 
+						<div style={innerStyle.FormItem}>
+							<Label style={innerStyle.FormItemLabel} htmlFor={'send-to'}>Browse</Label>
+							<div style={{ display: 'flex', flexDirection: 'column' }}>
+								<Input style={innerStyle.FormItemInput} type={'file'} onChange={BrowseFileOnChange} accept={'image/*,.pdf,.xlsx,.pptx,.docx,.xls,.ppt,.doc'} />
+								<span style={{ fontStyle: 'italic', fontSize: 13 }}>Max size 5MB per file</span>
+							</div>
+
+						</div>
 					</div>
-
-
 				</ModalBody>
+				<ModalFooter  >
+					<Button isOutline color='success' isDisable={isLoading} onClick={UpdaloadFile} icon={'Done'}>
+						Accept
+					</Button>
+					<Button isOutline color='dark' onClick={CloseAddNewFileModal} icon={'PowerSettingsNew'}>
+						Close
+					</Button>
+				</ModalFooter>
 			</Modal>
+
+			<Modal
+				isOpen={isPopupAddNewFileConfirmOpen} // Example: state
+				isStaticBackdrop={true}
+				isScrollable={true}
+				isCentered={true}
+				size={'sm'} // 'sm' || 'lg' || 'xl' 
+				fullScreen={'md'} // true || 'sm' || 'md' || 'lg' || 'xl' || 'xxl' 
+				isAnimation={true}
+				setIsOpen={setIsPopupAddNewFileConfirmOpen}>
+				<ModalHeader>
+					<ModalTitle id={'ModalTitle'}>Confirm</ModalTitle>
+				</ModalHeader>
+				<ModalBody >
+					<div>
+						Do you want to upload files to this folder?
+					</div>
+				</ModalBody>
+				<ModalFooter  >
+					<Button isOutline color='success' onClick={OpenAddNewFileModal} icon={'Done'}>
+						Accept
+					</Button>
+					<Button isOutline color='dark' onClick={CloseAddNewFileModal} icon={'PowerSettingsNew'}>
+						Close
+					</Button>
+				</ModalFooter>
+			</Modal>
+
+			<Modal
+				isOpen={isConfirmDeleteModalOpen} // Example: state
+				isStaticBackdrop={true}
+				isScrollable={true}
+				isCentered={true}
+				size={'sm'} // 'sm' || 'lg' || 'xl' 
+				fullScreen={'md'} // true || 'sm' || 'md' || 'lg' || 'xl' || 'xxl' 
+				isAnimation={true}
+				setIsOpen={setIsConfirmDeleteModalOpen}>
+				<ModalHeader>
+					<ModalTitle id={'DeleteModalTitle'}>Alert</ModalTitle>
+				</ModalHeader>
+				<ModalBody >
+					<div>
+						Are you sure want to delete?
+					</div>
+				</ModalBody>
+				<ModalFooter  >
+					<Button isDisable={isLoading} isOutline color='success' onClick={AcceptDelete} icon={'Done'}>
+						Accept
+					</Button>
+					<Button isOutline color='dark' onClick={CloseConfirmDelete} icon={'PowerSettingsNew'}>
+						Close
+					</Button>
+				</ModalFooter>
+			</Modal>
+
 		</PageWrapper>
 	);
 };
@@ -276,7 +461,7 @@ const innerStyle = {
 		paddingBottom: 15,
 		display: 'flex',
 		alignItems: 'center',
-		gap:10
+		gap: 10
 	},
 	FormItemLabel: {
 		width: 120

@@ -1,11 +1,11 @@
 import React from 'react';
 import PageWrapper from '../../../layout/PageWrapper/PageWrapper';
 import Page from '../../../layout/Page/Page';
-import { customerManagementsMenu } from '../../../menu';
+import { settingsMenu } from '../../../menu';
 
 const OnlyContent = () => {
 	return (
-		<PageWrapper title={customerManagementsMenu.customerManagements.subMenu.customerInformations.text}>
+		<PageWrapper title={settingsMenu.settings.subMenu.accountantServices.text}>
 			<Page>
 				<div className='row d-flex align-items-center h-100'>
 					<div

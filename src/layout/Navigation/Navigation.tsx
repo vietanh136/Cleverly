@@ -96,14 +96,14 @@ interface INavigationProps {
 			id?: string | number;
 			text?: string;
 			path?: string;
-			icon?: TIcons;
+			icon?: ReactNode;
 			isDisable?: boolean;
 			subMenu?: {
 				[key: string]: {
 					id?: string | number;
 					text?: string;
 					path?: string;
-					icon?: TIcons;
+					icon?: ReactNode;
 					isDisable?: boolean;
 				};
 			} | null;
@@ -124,14 +124,14 @@ const Navigation = forwardRef<HTMLElement, INavigationProps>(
 						id?: string | number;
 						text?: string;
 						path?: string;
-						icon?: TIcons;
+						icon?: ReactNode;
 						isDisable?: boolean;
 						subMenu?:
 							| {
 									id?: string | number;
 									text?: string;
 									path?: string;
-									icon?: TIcons;
+									icon?: ReactNode;
 									isDisable?: boolean;
 							  }[]
 							| undefined;
@@ -206,14 +206,14 @@ Navigation.propTypes = {
 		id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 		text: PropTypes.string,
 		path: PropTypes.string,
-		icon: PropTypes.string,
+		icon: PropTypes.any,
 		isDisable: PropTypes.bool,
 		subMenu: PropTypes.arrayOf(
 			PropTypes.shape({
 				id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 				text: PropTypes.string,
 				path: PropTypes.string,
-				icon: PropTypes.string,
+				icon: PropTypes.any,
 				isDisable: PropTypes.bool,
 			}),
 		),

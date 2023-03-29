@@ -1,4 +1,4 @@
-import React, { useState, useContext, ReactNode } from 'react';
+import React, { useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
@@ -13,7 +13,7 @@ import useNavigationItemHandle from '../../hooks/useNavigationItemHandle';
 import AuthContext from '../../contexts/authContext';
 
 const User = () => {
-	const { userData, setUser } = useContext(AuthContext);
+	const [userData, setUserData] = useState<any>(null);
 
 	const navigate = useNavigate();
 	const handleItem = useNavigationItemHandle();
@@ -22,7 +22,13 @@ const User = () => {
 	const [collapseStatus, setCollapseStatus] = useState<boolean>(false);
 
 	const { t } = useTranslation(['translation', 'menu']);
-
+	useEffect(() => {
+		const userDataFromCookie = localStorage.getItem('userData');
+		if (userDataFromCookie !== '' && userDataFromCookie !== null && typeof userDataFromCookie !== 'undefined') {
+			setUserData(JSON.parse(userDataFromCookie));
+		}
+		return () => { };
+	}, []);
 	return (
 		<>
 			<div
@@ -31,8 +37,8 @@ const User = () => {
 				onClick={() => setCollapseStatus(!collapseStatus)}>
 				<div className='user-avatar'>
 					<img
-						srcSet={userData?.srcSet}
-						src={userData?.src}
+						srcSet={userData?.Avatar}
+						src={userData?.Avatar === '' || userData?.Avatar === null ? require('../../assets/img/user-large.png') : userData?.Avatar}
 						alt='Avatar'
 						width={128}
 						height={128}
@@ -40,10 +46,10 @@ const User = () => {
 				</div>
 				<div className='user-info'>
 					<div className='user-name d-flex align-items-center'>
-						{`${userData?.name} ${userData?.surname}`}
+						{`${userData?.FirstName} ${userData?.LastName}`}
 						<Icon icon='Verified' className='ms-1' color='info' />
 					</div>
-					<div className='user-sub-title'>{userData?.position}</div>
+					<div className='user-sub-title'>{userData?.UserName}</div>
 				</div>
 			</div>
 			<DropdownMenu>

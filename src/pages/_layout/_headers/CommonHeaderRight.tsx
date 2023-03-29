@@ -1,4 +1,4 @@
-import React, { FC, ReactNode, useContext, useLayoutEffect, useState } from 'react';
+import React, { FC, ReactNode, useContext, useLayoutEffect, useState,useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
@@ -23,7 +23,8 @@ import showNotification from '../../../components/extras/showNotification';
 import useDarkMode from '../../../hooks/useDarkMode';
 import Popovers from '../../../components/bootstrap/Popovers';
 import Spinner from '../../../components/bootstrap/Spinner';
-
+import { CONSTANT, DateStringFormat, GetObjectProperty, SendGetRequest } from '../../../helpers/helpers';
+import $ from 'jquery';
 interface ICommonHeaderRightProps {
 	beforeChildren?: ReactNode;
 	afterChildren?: ReactNode;
@@ -38,6 +39,26 @@ const CommonHeaderRight: FC<ICommonHeaderRightProps> = ({ beforeChildren, afterC
 		isLight: !darkModeStatus,
 		size: 'lg',
 	};
+
+	const [currentPage, setCurrentPage] = useState(1);
+	const [hasLoadMore, setHasLoadMore] = useState(false);
+	const [listNotification, setListNotification] = useState<any[]>([]);
+
+	const LoadNotification = async () => {
+		let rs = await SendGetRequest(`/notification/GetListNotification?page=${currentPage}`);
+		if (GetObjectProperty(rs, 'status') !== CONSTANT.ResponseStatus.SUCCESS) return;
+		if (currentPage >= rs.data.totalPage) setHasLoadMore(false);
+		else setHasLoadMore(true);
+		if(currentPage === 1) { 
+			setListNotification(rs.data.listData);
+		}else {
+			setListNotification([...listNotification,...rs.data.listData]);
+		}
+		setTimeout(() => {
+			var el = document.getElementsByClassName("offcanvas-body")[0];
+			el.scrollTop = el.scrollHeight;
+		}, 500);
+	}
 
 	const [offcanvasStatus, setOffcanvasStatus] = useState(false);
 
@@ -60,6 +81,10 @@ const CommonHeaderRight: FC<ICommonHeaderRightProps> = ({ beforeChildren, afterC
 	useLayoutEffect(() => {
 		document.documentElement.setAttribute('lang', i18n.language.substring(0, 2));
 	});
+
+	useEffect(()=>{
+		LoadNotification();
+	},[currentPage])
 
 	const { setIsOpen } = useTour();
 
@@ -99,120 +124,7 @@ const CommonHeaderRight: FC<ICommonHeaderRightProps> = ({ beforeChildren, afterC
 					</Popovers>
 				</div>
 
-				{/* Lang Selector */}
-				{/*
-				<div className='col-auto'>
-					<Dropdown>
-						<DropdownToggle hasIcon={false}>
-							{typeof getLangWithKey(i18n.language as ILang['key']['lng'])?.icon ===
-							'undefined' ? (
-								<Button
-									// eslint-disable-next-line react/jsx-props-no-spreading
-									{...styledBtn}
-									className='btn-only-icon'
-									aria-label='Change language'
-									data-tour='lang-selector'>
-									<Spinner isSmall inButton='onlyIcon' isGrow />
-								</Button>
-							) : (
-								<Button
-									// eslint-disable-next-line react/jsx-props-no-spreading
-									{...styledBtn}
-									icon={
-										getLangWithKey(i18n.language as ILang['key']['lng'])?.icon
-									}
-									aria-label='Change language'
-									data-tour='lang-selector'
-								/>
-							)}
-						</DropdownToggle>
-						<DropdownMenu isAlignmentEnd data-tour='lang-selector-menu'>
-							{Object.keys(LANG).map((i) => (
-								<DropdownItem key={LANG[i].lng}>
-									<Button
-										icon={LANG[i].icon}
-										onClick={() => changeLanguage(LANG[i].lng)}>
-										{LANG[i].text}
-									</Button>
-								</DropdownItem>
-							))}
-						</DropdownMenu>
-					</Dropdown>
-				</div>
-				*/}
 
-				{/* Quick Panel */}
-				{/*
-				<div className='col-auto'>
-					<Dropdown>
-						<DropdownToggle hasIcon={false}>
-							<Button {...styledBtn} icon='Tune' aria-label='Quick menu' />
-						</DropdownToggle>
-						<DropdownMenu isAlignmentEnd size='lg' className='py-0 overflow-hidden'>
-							<div className='row g-0'>
-								<div
-									className={classNames(
-										'col-12',
-										'p-4',
-										'd-flex justify-content-center',
-										'fw-bold fs-5',
-										'text-info',
-										'border-bottom border-info',
-										{
-											'bg-l25-info': !darkModeStatus,
-											'bg-lo25-info': darkModeStatus,
-										},
-									)}>
-									Quick Panel
-								</div>
-								<div
-									className={classNames(
-										'col-6 p-4 transition-base cursor-pointer bg-light-hover',
-										'border-end border-bottom',
-										{ 'border-dark': darkModeStatus },
-									)}>
-									<div className='d-flex flex-column align-items-center justify-content-center'>
-										<Icon icon='Public' size='3x' color='info' />
-										<span>Dealers</span>
-										<small className='text-muted'>Options</small>
-									</div>
-								</div>
-								<div
-									className={classNames(
-										'col-6 p-4 transition-base cursor-pointer bg-light-hover',
-										'border-bottom',
-										{ 'border-dark': darkModeStatus },
-									)}>
-									<div className='d-flex flex-column align-items-center justify-content-center'>
-										<Icon icon='Upcoming' size='3x' color='success' />
-										<span>Inbox</span>
-										<small className='text-muted'>Configuration</small>
-									</div>
-								</div>
-								<div
-									className={classNames(
-										'col-6 p-4 transition-base cursor-pointer bg-light-hover',
-										'border-end',
-										{ 'border-dark': darkModeStatus },
-									)}>
-									<div className='d-flex flex-column align-items-center justify-content-center'>
-										<Icon icon='Print' size='3x' color='danger' />
-										<span>Print</span>
-										<small className='text-muted'>Settings</small>
-									</div>
-								</div>
-								<div className='col-6 p-4 transition-base cursor-pointer bg-light-hover'>
-									<div className='d-flex flex-column align-items-center justify-content-center'>
-										<Icon icon='ElectricalServices' size='3x' color='warning' />
-										<span>Power</span>
-										<small className='text-muted'>Mode</small>
-									</div>
-								</div>
-							</div>
-						</DropdownMenu>
-					</Dropdown>
-				</div>
-				*/}
 
 				{/*	Notifications */}
 				<div className='col-auto'>
@@ -237,22 +149,35 @@ const CommonHeaderRight: FC<ICommonHeaderRightProps> = ({ beforeChildren, afterC
 					<OffCanvasTitle id='offcanvasExampleLabel'>Notifications</OffCanvasTitle>
 				</OffCanvasHeader>
 				<OffCanvasBody>
-					<Alert icon='ViewInAr' isLight color='info' className='flex-nowrap'>
-						4 new components added.
-					</Alert>
-					<Alert icon='ThumbUp' isLight color='warning' className='flex-nowrap'>
-						New products added to stock.
-					</Alert>
-					<Alert icon='Inventory2' isLight color='danger' className='flex-nowrap'>
-						There are products that need to be packaged.
-					</Alert>
-					<Alert icon='BakeryDining' isLight color='success' className='flex-nowrap'>
-						Your food order is waiting for you at the consultation.
-					</Alert>
-					<Alert icon='Escalator' isLight color='primary' className='flex-nowrap'>
-						Escalator will turn off at 6:00 pm.
-					</Alert>
+					{
+						listNotification.length <= 0 ? <Alert isLight color='light' className='flex-nowrap'>
+							You don't have any notìication.
+						</Alert> :
+							listNotification.map((item, index) => {
+								return (
+									<Alert key={index} isLight color='dark' className='flex-nowrap'>
+										<div style={{width:'100%'}}>
+
+											<div>
+												{GetObjectProperty(item, 'UserName') + ' ' + GetObjectProperty(item, 'Actions')}
+											</div>
+											<div style={{fontSize:11,paddingTop:5,textAlign:'right'}}>
+												{DateStringFormat({ stringDate: GetObjectProperty(item, 'LogTime')  , currentFormat : 'yyyy/mm/dd hh:mi:ss' , newFormat : 'dd/mm/yyyy hh:mi:ss'}) }
+											</div>
+										</div>
+
+									</Alert>
+								);
+							})
+					}
 				</OffCanvasBody>
+				{
+					hasLoadMore ? <Button isLink onClick={() => {
+						 setCurrentPage(currentPage+1); }}>
+						{'Load more'}
+					</Button> : null
+				}
+
 			</OffCanvas>
 		</HeaderRight>
 	);

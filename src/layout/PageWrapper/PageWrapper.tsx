@@ -30,15 +30,11 @@ const PageWrapper = forwardRef<HTMLDivElement, IPageWrapperProps>(
 				.setAttribute('content', description || process.env.REACT_APP_META_DESC || '');
 		});
 
-		const { user } = useContext(AuthContext);
-
 		const navigate = useNavigate();
 		useEffect(() => {
 			
 
 			const userToken = localStorage.getItem('userToken');
-			console.log('user ',userToken);
-			console.log('isProtected ',isProtected);
 
 			if (isProtected && ( userToken === '' || userToken === null || typeof userToken === 'undefined' )) {
 				navigate(`../${demoPagesMenu.login.path}`);

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PageWrapper from '../../../layout/PageWrapper/PageWrapper';
 import Page from '../../../layout/Page/Page';
-import { customerManagementsMenu } from '../../../menu';
+import { settingsMenu } from '../../../menu';
 import Button from '../../../components/bootstrap/Button';
 import Label from '../../../components/bootstrap/forms/Label';
 import Input from '../../../components/bootstrap/forms/Input';
@@ -10,6 +10,7 @@ import Modal, { ModalHeader, ModalTitle, ModalBody, ModalFooter } from '../../..
 import NomineesAddress from './components/configurationsComponents/NomineesAddress';
 import NomineesDirectorName from './components/configurationsComponents/NomineesDirectorName';
 import ShareholdersDocuments from './components/configurationsComponents/ShareholdersDocuments';
+import Card, { CardBody } from '../../../components/bootstrap/Card';
 const TAB = {
 	NOMINEES_ADDRESS: 1,
 	NOMINEES_DIRECTOR_NAME: 2,
@@ -31,25 +32,29 @@ const OnlyContent = () => {
 	}
 
 	return (
-		<PageWrapper title={customerManagementsMenu.customerManagements.subMenu.customerInformations.text}>
+		<PageWrapper title={settingsMenu.settings.subMenu.configurations.text}>
 			<Page>
-				<div style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
-					<div style={{ display: 'flex', gap: 10 }}>
-						<Button isOutline={!(tab === TAB.NOMINEES_ADDRESS)} onClick={TabNominessAddressActive} color='info'>Nominee's Address</Button>
-						<Button isOutline={!(tab === TAB.NOMINEES_DIRECTOR_NAME)} onClick={TabNomiDirectorActive} color='info'>Nominee's Director Name</Button>
-						<Button isOutline={!(tab === TAB.SHAREHOLDERS_DOCUMENTS)} onClick={TabShareHoldersActive} color='info'>Shareholder's Documents</Button>
-					</div>
 
-					<div style={{ display: tab === TAB.NOMINEES_ADDRESS ? 'block' : 'none' }}>
+				<div style={{ display: 'flex', gap: 10 ,paddingBottom:20}}>
+					<Button isOutline={!(tab === TAB.NOMINEES_ADDRESS)} onClick={TabNominessAddressActive} color='info'>Nominee's Address</Button>
+					<Button isOutline={!(tab === TAB.NOMINEES_DIRECTOR_NAME)} onClick={TabNomiDirectorActive} color='info'>Nominee's Director Name</Button>
+					<Button isOutline={!(tab === TAB.SHAREHOLDERS_DOCUMENTS)} onClick={TabShareHoldersActive} color='info'>Shareholder's Documents</Button>
+				</div>
+
+				<Card stretch={'full'}>
+
+
+					<div style={{ display: tab === TAB.NOMINEES_ADDRESS ? 'flex' : 'none', flexDirection:'column', height:'100%' }}>
 						<NomineesAddress />
 					</div>
-					<div style={{ display: tab === TAB.NOMINEES_DIRECTOR_NAME ? 'block' : 'none' }}>
+					<div style={{ display: tab === TAB.NOMINEES_DIRECTOR_NAME ? 'flex' : 'none' ,flexDirection:'column',height:'100%'}}>
 						<NomineesDirectorName />
 					</div>
-					<div style={{ display: tab === TAB.SHAREHOLDERS_DOCUMENTS ? 'block' : 'none' }}>
+					<div style={{ display: tab === TAB.SHAREHOLDERS_DOCUMENTS ? 'flex' : 'none',flexDirection:'column',height:'100%' }}>
 						<ShareholdersDocuments />
 					</div>
-				</div>
+
+				</Card>
 			</Page>
 		</PageWrapper>
 	);

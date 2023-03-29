@@ -19,7 +19,7 @@ interface IItemProps {
 	children?: ReactNode;
 	to?: string;
 	title?: string;
-	icon?: TIcons;
+	icon?: string;
 	id?: string;
 	parentId?: string;
 	rootId: string;
@@ -83,7 +83,7 @@ const Item: FC<IItemProps> = ({
 	const INNER = (
 		<>
 			<span className='navigation-link-info'>
-				{icon && <Icon className='navigation-icon' icon={icon} />}
+				{icon && <i className={'navigation-icon ' + icon}></i>}
 				{title && <span className='navigation-text'>{t(title) as ReactNode}</span>}
 			</span>
 			{(!!children || !!notification) && (

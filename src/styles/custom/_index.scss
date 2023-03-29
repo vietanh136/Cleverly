@@ -4,7 +4,7 @@
 
 @use 'sass:map';
 
-ul {
+ul.none-list-style {
 	list-style: none !important;
 	padding: 0;
 	margin: 0;
@@ -40,6 +40,16 @@ ul {
 	border-top: .5px solid #dedede;
 }
 
+.list-data .list-data-header>li>div>.no {
+	width: 80px;
+	justify-content: flex-end;
+	align-items: center;
+}
+
+.list-data .list-data-header>li>div>.action {
+	width: 80px;
+}
+
 .list-data .list-data-body {
 	padding: 15px 0;
 }
@@ -67,16 +77,61 @@ ul {
 	width: 80px;
 }
 
-.list-data .list-data-pagination {
-	border-top: .5px solid #dedede;
-	padding-top: 15px;
+.list-data-pagination {
+		border-top: 0.5px solid #dedede;
+			padding-top: 15px;
+			list-style: none;
+			padding-left: 0;
+			display: flex;
+			gap: 5px;
+			flex-wrap: wrap;
 }
-.faqs-update-form{
-display: flex;
-flex-direction: column;
-gap: 20px;
-}
-.faqs-update-form > div{
+
+.faqs-update-form {
 	display: flex;
 	flex-direction: column;
+	gap: 20px;
+}
+
+.faqs-update-form>div {
+	display: flex;
+	flex-direction: column;
+}
+
+.data-room>ul>li {
+	padding: 5px 0;
+}
+
+.data-room>ul>li.list-header {
+	background-color: #4c4c4c40;
+	font-weight: bold;
+}
+
+.data-room>ul>li>div {
+	display: flex;
+}
+
+.data-room>ul>li>div .action {
+	width: 80px;
+	display: flex;
+	justify-content: center;
+}
+
+.data-room>ul>li>div .name {
+	flex: 1;
+}
+
+.data-room>ul>li>div .folder {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	cursor: pointer;
+}
+.data-room>ul>li>div .create-time {
+	width: 120px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	cursor: pointer;
 }

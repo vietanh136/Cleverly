@@ -5,7 +5,7 @@ import { customerManagementsMenu } from '../../../menu';
 
 const OnlyContent = () => {
 	return (
-		<PageWrapper title={customerManagementsMenu.customerManagements.subMenu.customerInformations.text}>
+		<PageWrapper title={'Purchase Orders'}>
 			<Page>
 				<div className='row d-flex align-items-center h-100'>
 					<div

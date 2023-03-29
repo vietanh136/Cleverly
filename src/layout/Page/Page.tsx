@@ -33,7 +33,7 @@ Page.propTypes = {
 	className: PropTypes.string,
 };
 Page.defaultProps = {
-	container: 'xxl',
+	container: 'fluid',
 	className: undefined,
 };
 

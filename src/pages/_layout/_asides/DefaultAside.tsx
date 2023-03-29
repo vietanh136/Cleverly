@@ -23,7 +23,7 @@ const DefaultAside = () => {
 			</AsideHead>
 			<AsideBody>
 				<>
-				<Navigation menu={dashboardPagesMenu} id='aside-dashboard' />
+					<Navigation menu={dashboardPagesMenu} id='aside-dashboard' />
 					<NavigationLine />
 					<Navigation menu={customerManagementsMenu} id='aside-customer-managements' />
 					<NavigationLine />
