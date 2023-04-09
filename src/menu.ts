@@ -163,13 +163,28 @@ export const settingsMenu = {
 				icon: 'fa-solid fa-lines-leaning',
 				subMenu: null,
 			},
-			accountantServices: {
+			accountantServicesSerapate: {
 				id: 'accountantServices',
-				text: 'Accountant Services',
-				path: 'accountant-services',
+				text: 'Accounting Services',
+			},
+			accountantServices: {
+				id: 'accountantServicesServices',
+				text: 'Accounting Services',
+				path: 'accountant-services/services',
 				icon: 'fa-solid fa-cash-register',
-				subMenu: null,
-			}
+			},
+			accountantServicesCategories: {
+				id: 'accountantServicesCategories',
+				text: 'Categories',
+				path: 'accountant-services/categories',
+				icon: 'fa-solid fa-diagram-successor',
+			},
+			accountantServicesIncluded: {
+				id: 'accountantServicesServiceIncluded',
+				text: 'Service Included',
+				path: 'accountant-services/service-included',
+				icon: 'fa-solid fa-puzzle-piece',
+			},
 		},
 	},
 }

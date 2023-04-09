@@ -21,14 +21,16 @@ const HOME = {
 const SETTINGS = {
 	TERM_AND_POLICY: lazy(() => import('../pages/presentation/settings/TermAndPolicy')),
 	FEES: lazy(() => import('../pages/presentation/settings/Fees')),
-	ACCOUNTANT_SERVICES: lazy(() => import('../pages/presentation/settings/AccountantServices')),
 	BUSINESS_ACCOUNT_QUESTIONS: lazy(() => import('../pages/presentation/settings/BusinessAccountQuestions')),
 	CONFIGURATIONS: lazy(() => import('../pages/presentation/settings/Configurations')),
 	EMAIL_TEMPLATES: lazy(() => import('../pages/presentation/settings/EmailTemplates')),
 	FAQS: lazy(() => import('../pages/presentation/settings/FAQs')),
 	FIELDS: lazy(() => import('../pages/presentation/settings/Fields')),
 	NOMINEES_DIRECTOR_SERVICES: lazy(() => import('../pages/presentation/settings/NomineesDirectorServices')),
-	SERVICES: lazy(() => import('../pages/presentation/settings/Services'))
+	SERVICES: lazy(() => import('../pages/presentation/settings/Services')),
+	ACCOUNTANT_SERVICES: lazy(() => import('../pages/presentation/settings/AccountantServices')),
+	ACCOUNTING_SERVICE_CATEGORIES: lazy(() => import('../pages/presentation/settings/AccountingServiceCategories')),
+	ACCOUNTING_SERVICE_INCLUDED: lazy(() => import('../pages/presentation/settings/AccountingServiceIncluded')),
 };
 
 
@@ -97,6 +99,14 @@ const presentation: RouteProps[] = [
 	{
 		path: settingsMenu.settings.subMenu.accountantServices.path,
 		element: <SETTINGS.ACCOUNTANT_SERVICES />
+	},
+	{
+		path: settingsMenu.settings.subMenu.accountantServicesCategories.path,
+		element: <SETTINGS.ACCOUNTING_SERVICE_CATEGORIES />
+	},
+	{
+		path: settingsMenu.settings.subMenu.accountantServicesIncluded.path,
+		element: <SETTINGS.ACCOUNTING_SERVICE_INCLUDED />
 	},
 	{
 		path: settingsMenu.settings.subMenu.businessAccountQuestions.path,

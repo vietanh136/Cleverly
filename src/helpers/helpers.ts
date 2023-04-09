@@ -248,3 +248,24 @@ export  const CloseAllDropup = (e: any) => {
 		$('.dropup').find('ul').css('display', 'none');
 	}
 }
+export function NumberFormat(num: any, joinChar = ',') {
+	try {
+		let numString = num + '';
+		let isNegative = false;
+		if (numString[0] === '-') isNegative = true;
+		numString = numString.replace(/-/g, '');
+		var numberPart = numString.split('.');
+		var s = numberPart[0];
+		var arr = [];
+		while (s.length > 0) {
+			if (s.length > 3) {
+				arr.push(s.slice(s.length - 3, s.length));
+				s = s.slice(0, s.length - 3);
+			} else {
+				arr.push(s);
+				s = '';
+			}
+		}
+		return (isNegative ? '-' : '') + arr.reverse().join(joinChar) + (numberPart.length > 1 ? '.' + numberPart[1] : '');
+	} catch (ex) { return ''; }
+}

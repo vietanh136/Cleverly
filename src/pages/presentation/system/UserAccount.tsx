@@ -243,8 +243,8 @@ const OnlyContent = () => {
 													<div className="dropup" data-id={item.ID} >
 														<button type="button" className="btn " aria-expanded="true" onClick={ToggleDropdown}><i className="fa-solid fa-bars"></i></button>
 														<ul style={{ zIndex: 5, position: 'absolute', display: 'none', flexDirection: 'column', backgroundColor: '#dbddd8', padding: 0, margin: 0, borderRadius: 10, borderWidth: .5, borderColor: '#00000020 !important' }}>
-															<Button style={{ width: 80 }} onClick={OpenEditUserModal}>Edit</Button>
-															<Button style={{ width: 80 }} onClick={ConfirmDelete}>Delete</Button>
+															<li><Button style={{ width: 80 }} onClick={OpenEditUserModal}>Edit</Button></li>
+															<li><Button style={{ width: 80 }} onClick={ConfirmDelete}>Delete</Button></li>
 														</ul>
 													</div>
 												</td>
